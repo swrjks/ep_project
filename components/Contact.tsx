@@ -3,18 +3,38 @@ import { PhoneIcon, MailIcon, LocationMarkerIcon } from './icons';
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [statusMessage, setStatusMessage] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In a real app, you would handle form submission here (e.g., API call)
-    console.log('Form submitted:', formData);
-    alert('Thank you for your message! We will get back to you soon.');
-    setFormData({ name: '', email: '', message: '' });
-  };
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const res = await fetch("http://localhost:5000/send-mail", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    if (res.ok) {
+      setStatusMessage("Message sent successfully.");
+      setFormData({ name: "", email: "", message: "" });
+
+      setTimeout(() => setStatusMessage(""), 3000);
+    } else {
+      setStatusMessage("Failed to send message.");
+      setTimeout(() => setStatusMessage(""), 3000);
+    }
+  } catch (error) {
+    setStatusMessage("Error sending message.");
+    setTimeout(() => setStatusMessage(""), 3000);
+  }
+};
+
+
 
   const mapsQuery = "Vivekananda School, Hoskote, Bengaluru";
   const mapsEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(mapsQuery)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
@@ -101,6 +121,12 @@ const Contact: React.FC = () => {
                 className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 transition"
               ></textarea>
             </div>
+            {statusMessage && (
+                <p className="text-green-400 font-semibold text-center">
+                  {statusMessage}
+                </p>
+              )}
+
             <button 
               type="submit" 
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md transition duration-300 transform hover:scale-105"
